@@ -1,20 +1,32 @@
 package main
 
 import (
+	"fyne.io/fyne"
 	"fyne.io/fyne/app"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/layout"
 )
 
 func main() {
-	a := app.New()
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Gopher Juggle")
 
-	w := a.NewWindow("Hello")
-	w.SetContent(widget.NewVBox(
-		widget.NewLabel("Hello Fyne!"),
-		widget.NewButton("Quit", func() {
-			a.Quit()
-		}),
-	))
+	gopherIcon1 := canvas.NewImageFromFile("buff.png")
 
-	w.ShowAndRun()
+	container := fyne.NewContainerWithLayout(layout.NewGridLayout(1),
+		gopherIcon1)
+
+	// myWidget := widget.NewButtonWithIcon("", gopherIcon1, func() {
+	// 	log.Println("Clicked!")
+	// })
+
+	// go changeContent(myCanvas)
+
+	myWindow.Resize(fyne.NewSize(500, 500))
+	myWindow.SetContent(container)
+	myWindow.ShowAndRun()
+}
+
+func changeContent(c fyne.Canvas) {
+
 }
