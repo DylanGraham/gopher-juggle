@@ -20,22 +20,19 @@ var (
 )
 
 func init() {
-	gopher1, _, err := ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
+	var err error
+	gopher1, _, err = ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
-	gopher2, _, err := ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
+	gopher2, _, err = ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
-	gopher3, _, err := ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
+	gopher3, _, err = ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	println(gopher1)
-	println(gopher2)
-	println(gopher3)
 }
 
 // Game struct
@@ -43,12 +40,13 @@ type Game struct{}
 
 // Update the game state
 func (g *Game) Update(screen *ebiten.Image) error {
-
 	return nil
 }
 
 // Draw the current game state
 func (g *Game) Draw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	screen.DrawImage(gopher1, op)
 }
 
 // Layout accepts the outside size (e.g., window size), and
@@ -60,7 +58,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	g := &Game{}
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("Gopher Juggle")
 	if err := ebiten.RunGame(g); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
