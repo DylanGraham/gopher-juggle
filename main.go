@@ -38,21 +38,23 @@ func init() {
 	println(gopher3)
 }
 
+// Game struct
 type Game struct{}
 
+// Update the game state
 func (g *Game) Update(screen *ebiten.Image) error {
-	// Update the game state
+
 	return nil
 }
 
+// Draw the current game state
 func (g *Game) Draw(screen *ebiten.Image) {
-	// Draw the current game state
 }
 
+// Layout accepts the outside size (e.g., window size), and
+// returns the game screen size.
+// The game screen scale is automatically adjusted.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	// Accepts the outside size (e.g., window size), and
-	// returns the game screen size.
-	// The game screen scale is automatically adjusted.
 	return 320, 240
 }
 
