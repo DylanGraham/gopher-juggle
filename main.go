@@ -21,7 +21,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	gopher, _, err = ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
+	gopher, _, err = ebitenutil.NewImageFromFile("gopher.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,10 +35,6 @@ type Game struct {
 	vy float64
 }
 
-func (g *Game) init() {
-
-}
-
 // Update the game state
 func (g *Game) Update(screen *ebiten.Image) error {
 	return nil
@@ -47,7 +43,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 // Draw the current game state
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.vy += gravity
-	if g.y > 300 {
+	if g.y > 2350 {
 		g.vy = -g.vy
 	}
 
@@ -55,6 +51,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.y += int(math.Round(g.vy))
 
 	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(.6, .6)
+	op.GeoM.Translate(80, 30)
+	screen.DrawImage(gopher, op)
+
+	op.GeoM.Reset()
 	op.GeoM.Translate(float64(g.x), float64(g.y))
 	op.GeoM.Scale(.2, .2)
 	// op.GeoM.Rotate()
@@ -65,13 +66,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 // returns the game screen size.
 // The game screen scale is automatically adjusted.
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 1024, 768
+	return 500, 600
 }
 
 func main() {
-	g := &Game{x: 50, y: 75, vx: 2}
-	gravity = .1
-	ebiten.SetWindowSize(1024, 768)
+	g := &Game{x: 500, y: 600}
+	gravity = .3
+	ebiten.SetWindowSize(500, 600)
 	ebiten.SetWindowTitle("Gopher Juggle")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
