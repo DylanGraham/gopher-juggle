@@ -47,6 +47,10 @@ func (g *Game) Update(screen *ebiten.Image) error {
 // Draw the current game state
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.vy += gravity
+	if g.y > 300 {
+		g.vy = -g.vy
+	}
+
 	g.x += int(math.Round(g.vx))
 	g.y += int(math.Round(g.vy))
 
