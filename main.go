@@ -95,6 +95,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 		if g.y > 450 && kickBall() {
 			g.vy = -g.vy + gravity
+			g.score++
 		}
 
 		if g.y > 600 {
@@ -125,13 +126,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	var texts []string
 	switch g.mode {
 	case modeTitle:
-		texts = []string{"Gopher Juggle", "", "", "", "", "PRESS SPACE KEY", "", "OR TOUCH SCREEN"}
+		texts = []string{"Gopher Juggle", "", "", "", "", "", "", "", "", "PRESS SPACE KEY"}
 		screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(80, 30)
 		screen.DrawImage(gopher, op)
 	case modeGame:
-		screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
+		screen.Fill(color.RGBA{0x66, 0x66, 0x66, 0xff})
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(80, 30)
 		screen.DrawImage(gopher, op)
@@ -149,10 +150,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for i, l := range texts {
 		x := (screenWidth - len(l)*fontSize) / 2
-		text.Draw(screen, l, arcadeFont, x, (i+4)*fontSize, color.White)
+		text.Draw(screen, l, arcadeFont, x, (i+4)*fontSize, color.Black)
 	}
 	scoreStr := fmt.Sprintf("%04d", g.score)
-	text.Draw(screen, scoreStr, arcadeFont, screenWidth-len(scoreStr)*fontSize, fontSize, color.White)
+	text.Draw(screen, scoreStr, arcadeFont, screenWidth-len(scoreStr)*fontSize, fontSize, color.Black)
 }
 
 // Layout accepts the outside size (e.g., window size), and
