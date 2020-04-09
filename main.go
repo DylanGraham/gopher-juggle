@@ -7,15 +7,21 @@ import (
 	"log"
 	"math"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hajimehoshi/ebiten/text"
+	"golang.org/x/image/font"
 )
 
 var (
-	gravity float64
-	ball    *ebiten.Image
-	gopher  *ebiten.Image
+	gravity         float64
+	ball            *ebiten.Image
+	gopher          *ebiten.Image
+	arcadeFont      font.Face
+	smallArcadeFont font.Face
 )
 
 func init() {
@@ -28,6 +34,21 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	tt, err := truetype.Parse(fonts.ArcadeN_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	const dpi = 72
+	arcadeFont = truetype.NewFace(tt, &truetype.Options{
+		Size:    fontSize,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	smallArcadeFont = truetype.NewFace(tt, &truetype.Options{
+		Size:    smallFontSize,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
 }
 
 type mode int
@@ -38,19 +59,28 @@ const (
 	modeGameOver
 )
 
+const (
+	screenWidth   = 500
+	screenHeight  = 600
+	fontSize      = 32
+	smallFontSize = fontSize / 2
+)
+
 // Game struct
 type Game struct {
-	mode mode
-	x    int
-	y    int
-	vx   float64
-	vy   float64
+	mode  mode
+	x     int
+	y     int
+	vx    float64
+	vy    float64
+	score int
 }
 
 func (g *Game) reset() {
 	g.x = 125
 	g.y = 100
 	g.vy = 0
+	g.score = 0
 }
 
 // Update the game state
@@ -92,13 +122,16 @@ func kickBall() bool {
 
 // Draw the current game state
 func (g *Game) Draw(screen *ebiten.Image) {
+	var texts []string
 	switch g.mode {
 	case modeTitle:
+		texts = []string{"Gopher Juggle", "", "", "", "", "PRESS SPACE KEY", "", "OR TOUCH SCREEN"}
 		screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(80, 30)
 		screen.DrawImage(gopher, op)
 	case modeGame:
+		screen.Fill(color.RGBA{0xff, 0xff, 0xff, 0xff})
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(80, 30)
 		screen.DrawImage(gopher, op)
@@ -109,9 +142,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.DrawImage(ball, op)
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.CurrentTPS(), ebiten.CurrentFPS()))
 	case modeGameOver:
+		texts = []string{"", "GAME OVER!"}
 		g.reset()
 		g.mode = modeTitle
 	}
+
+	for i, l := range texts {
+		x := (screenWidth - len(l)*fontSize) / 2
+		text.Draw(screen, l, arcadeFont, x, (i+4)*fontSize, color.White)
+	}
+	scoreStr := fmt.Sprintf("%04d", g.score)
+	text.Draw(screen, scoreStr, arcadeFont, screenWidth-len(scoreStr)*fontSize, fontSize, color.White)
 }
 
 // Layout accepts the outside size (e.g., window size), and
