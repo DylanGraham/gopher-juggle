@@ -91,6 +91,7 @@ type Game struct {
 func (g *Game) reset() {
 	g.x = 125
 	g.y = 100
+	g.vx = 2
 	g.vy = 0
 	g.score = 0
 	g.radial = 0
@@ -115,7 +116,11 @@ func (g *Game) Update(screen *ebiten.Image) error {
 			g.mode = modeGameOver
 		}
 
-		// g.x += int(math.Round(g.vx))
+		if g.x > 400 || g.x < 30 {
+			g.vx = -g.vx
+		}
+
+		g.x += int(math.Round(g.vx))
 		g.y += int(math.Round(g.vy))
 
 	case modeGameOver:
@@ -179,7 +184,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(float64(g.x), float64(g.y))
 		screen.DrawImage(ball, op)
 
-		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.CurrentTPS(), ebiten.CurrentFPS()))
+		// ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.CurrentTPS(), ebiten.CurrentFPS()))
 	case modeGameOver:
 		texts = []string{"", "GAME OVER!"}
 		g.reset()
@@ -203,7 +208,8 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gravity = .3
-	g := &Game{x: 125, y: 100}
+	g := &Game{}
+	g.reset()
 	g.mode = modeTitle
 	ebiten.SetWindowSize(500, 600)
 	ebiten.SetWindowTitle("Gopher Juggle")
