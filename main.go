@@ -20,6 +20,7 @@ var (
 	gravity         float64
 	ball            *ebiten.Image
 	gopher          *ebiten.Image
+	gopherKick      *ebiten.Image
 	arcadeFont      font.Face
 	smallArcadeFont font.Face
 )
@@ -31,6 +32,10 @@ func init() {
 		log.Fatal(err)
 	}
 	gopher, _, err = ebitenutil.NewImageFromFile("gopher.png", ebiten.FilterDefault)
+	if err != nil {
+		log.Fatal(err)
+	}
+	gopherKick, _, err = ebitenutil.NewImageFromFile("gopher-kick.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,16 +69,18 @@ const (
 	screenHeight  = 600
 	fontSize      = 32
 	smallFontSize = fontSize / 2
+	circle        = math.Pi * 2
 )
 
 // Game struct
 type Game struct {
-	mode  mode
-	x     int
-	y     int
-	vx    float64
-	vy    float64
-	score int
+	mode   mode
+	x      int
+	y      int
+	vx     float64
+	vy     float64
+	score  int
+	radial float64
 }
 
 func (g *Game) reset() {
@@ -81,6 +88,7 @@ func (g *Game) reset() {
 	g.y = 100
 	g.vy = 0
 	g.score = 0
+	g.radial = 0
 }
 
 // Update the game state
@@ -135,12 +143,27 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.Fill(color.RGBA{0x66, 0x66, 0x66, 0xff})
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(80, 30)
-		screen.DrawImage(gopher, op)
+
+		var gopherDisplay *ebiten.Image
+		if kickBall() {
+			gopherDisplay = gopherKick
+		} else {
+			gopherDisplay = gopher
+		}
+		screen.DrawImage(gopherDisplay, op)
 
 		op.GeoM.Reset()
+		w, h := ball.Size()
+		g.radial += circle / 80
+		if g.radial >= circle {
+			g.radial = -circle
+		}
+		op.GeoM.Translate(-float64(w)/2.0, -float64(h)/2.0)
+		op.GeoM.Rotate(g.radial)
+		op.GeoM.Translate(float64(w)/2.0, float64(h)/2.0)
 		op.GeoM.Translate(float64(g.x), float64(g.y))
-		// op.GeoM.Rotate()
 		screen.DrawImage(ball, op)
+
 		ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.CurrentTPS(), ebiten.CurrentFPS()))
 	case modeGameOver:
 		texts = []string{"", "GAME OVER!"}
