@@ -6,6 +6,7 @@ import (
 	_ "image/png"
 	"log"
 	"math"
+	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
@@ -23,6 +24,8 @@ var (
 	gopherKick      *ebiten.Image
 	arcadeFont      font.Face
 	smallArcadeFont font.Face
+	gopherDisplay   *ebiten.Image
+	signals         = make(chan *ebiten.Image, 1)
 )
 
 func init() {
@@ -35,6 +38,8 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	gopherDisplay = gopher
+
 	gopherKick, _, err = ebitenutil.NewImageFromFile("gopher-kick.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
@@ -95,13 +100,13 @@ func (g *Game) reset() {
 func (g *Game) Update(screen *ebiten.Image) error {
 	switch g.mode {
 	case modeTitle:
-		if kickBall() {
+		if kickBall(g) {
 			g.mode = modeGame
 		}
 	case modeGame:
 		g.vy += gravity
 
-		if g.y > 450 && kickBall() {
+		if g.y > 450 && kickBall(g) {
 			g.vy = -g.vy + gravity
 			g.score++
 		}
@@ -119,11 +124,23 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	return nil
 }
 
-func kickBall() bool {
+func kickTimer() {
+	signals <- gopherKick
+	time.Sleep(150 * time.Millisecond)
+	signals <- gopher
+}
+
+func kickBall(g *Game) bool {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		if g.mode == modeGame {
+			go kickTimer()
+		}
 		return true
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if g.mode == modeGame {
+			go kickTimer()
+		}
 		return true
 	}
 	return false
@@ -144,11 +161,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(80, 30)
 
-		var gopherDisplay *ebiten.Image
-		if kickBall() {
-			gopherDisplay = gopherKick
-		} else {
-			gopherDisplay = gopher
+		select {
+		case gopherDisplay = <-signals:
+		default:
 		}
 		screen.DrawImage(gopherDisplay, op)
 
