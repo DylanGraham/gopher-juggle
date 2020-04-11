@@ -148,6 +148,12 @@ func kickBall(g *Game) bool {
 		}
 		return true
 	}
+	if len(inpututil.JustPressedTouchIDs()) > 0 {
+		if g.mode == modeGame {
+			go kickTimer()
+		}
+		return true
+	}
 	return false
 }
 
