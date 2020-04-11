@@ -124,7 +124,10 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		g.y += int(math.Round(g.vy))
 
 	case modeGameOver:
-		g.mode = modeTitle
+		if kickBall(g) {
+			g.mode = modeTitle
+			g.reset()
+		}
 	}
 	return nil
 }
@@ -157,16 +160,20 @@ func kickBall(g *Game) bool {
 	return false
 }
 
+func drawGopher(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(80, 30)
+	screen.DrawImage(gopher, op)
+}
+
 // Draw the current game state
 func (g *Game) Draw(screen *ebiten.Image) {
 	var texts []string
 	switch g.mode {
 	case modeTitle:
-		texts = []string{"Gopher Juggle", "", "", "", "", "", "", "", "", "PRESS SPACE KEY"}
-		screen.Fill(color.RGBA{0x80, 0xa0, 0xc0, 0xff})
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(80, 30)
-		screen.DrawImage(gopher, op)
+		texts = []string{"", "", "", "", "", "Gopher Juggle", "", "", "PRESS SPACE KEY", "OR TOUCH"}
+		drawGopher(screen)
 	case modeGame:
 		screen.Fill(color.RGBA{0x66, 0x66, 0x66, 0xff})
 		op := &ebiten.DrawImageOptions{}
@@ -190,11 +197,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		op.GeoM.Translate(float64(g.x), float64(g.y))
 		screen.DrawImage(ball, op)
 
+		// ebitenutil.DebugPrint(screen, fmt.Sprintf("%02.f", g.radial))
 		// ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.CurrentTPS(), ebiten.CurrentFPS()))
 	case modeGameOver:
-		texts = []string{"", "GAME OVER!"}
-		g.reset()
-		g.mode = modeTitle
+		texts = []string{"", "", "", "", "", "GAME OVER!"}
+		drawGopher(screen)
 	}
 
 	for i, l := range texts {
