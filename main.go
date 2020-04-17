@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"image/color"
 	_ "image/png"
+	"io/ioutil"
 	"log"
 	"math"
 	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/audio"
+	"github.com/hajimehoshi/ebiten/audio/wav"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
@@ -18,6 +21,8 @@ import (
 )
 
 var (
+	audioContext    *audio.Context
+	kickPlayer      *audio.Player
 	gravity         float64
 	ball            *ebiten.Image
 	gopher          *ebiten.Image
@@ -30,6 +35,24 @@ var (
 
 func init() {
 	var err error
+
+	// Audio
+	kick, err := ioutil.ReadFile("kick.wav")
+	if err != nil {
+		log.Fatal(err)
+	}
+	audioContext, _ = audio.NewContext(44100)
+	kickD, err := wav.Decode(audioContext, audio.BytesReadSeekCloser(kick))
+	if err != nil {
+		log.Fatal(err)
+	}
+	kickPlayer, err = audio.NewPlayer(audioContext, kickD)
+	if err != nil {
+		log.Fatal(err)
+	}
+	kickPlayer.SetVolume(.5)
+
+	// Images
 	ball, _, err = ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
@@ -108,6 +131,8 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		g.vy += gravity
 
 		if g.y > 450 && kickBall(g) {
+			kickPlayer.Rewind()
+			kickPlayer.Play()
 			g.vy = -g.vy + gravity
 			g.score++
 		}
