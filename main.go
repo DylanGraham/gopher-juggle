@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"image"
 	"image/color"
 	_ "image/png"
-	"io/ioutil"
 	"log"
 	"math"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
 	"github.com/hajimehoshi/ebiten/audio/wav"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/hajimehoshi/ebiten/text"
@@ -37,12 +37,8 @@ func init() {
 	var err error
 
 	// Audio
-	kick, err := ioutil.ReadFile("kick.wav")
-	if err != nil {
-		log.Fatal(err)
-	}
 	audioContext, _ = audio.NewContext(44100)
-	kickD, err := wav.Decode(audioContext, audio.BytesReadSeekCloser(kick))
+	kickD, err := wav.Decode(audioContext, audio.BytesReadSeekCloser(kick_wav))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,20 +49,25 @@ func init() {
 	kickPlayer.SetVolume(.5)
 
 	// Images
-	ball, _, err = ebitenutil.NewImageFromFile("ball.png", ebiten.FilterDefault)
+	img, _, err := image.Decode(bytes.NewReader(gopher_png))
 	if err != nil {
 		log.Fatal(err)
 	}
-	gopher, _, err = ebitenutil.NewImageFromFile("gopher.png", ebiten.FilterDefault)
-	if err != nil {
-		log.Fatal(err)
-	}
+	gopher, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
 	gopherDisplay = gopher
 
-	gopherKick, _, err = ebitenutil.NewImageFromFile("gopher-kick.png", ebiten.FilterDefault)
+	img, _, err = image.Decode(bytes.NewReader(ball_png))
 	if err != nil {
 		log.Fatal(err)
 	}
+	ball, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+
+	img, _, err = image.Decode(bytes.NewReader(gopherKick_png))
+	if err != nil {
+		log.Fatal(err)
+	}
+	gopherKick, _ = ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+
 	tt, err := truetype.Parse(fonts.ArcadeN_ttf)
 	if err != nil {
 		log.Fatal(err)
@@ -130,7 +131,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	case modeGame:
 		g.vy += gravity
 
-		if g.y > 450 && kickBall(g) {
+		if g.y > 400 && kickBall(g) {
 			kickPlayer.Rewind()
 			kickPlayer.Play()
 			g.vy = -g.vy + gravity
