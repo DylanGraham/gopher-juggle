@@ -13,6 +13,7 @@ import (
 	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/audio"
+	"github.com/hajimehoshi/ebiten/audio/mp3"
 	"github.com/hajimehoshi/ebiten/audio/wav"
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
@@ -23,6 +24,8 @@ import (
 var (
 	audioContext    *audio.Context
 	kickPlayer      *audio.Player
+	beatLoop        *audio.InfiniteLoop
+	beatPlayer      *audio.Player
 	gravity         float64
 	ball            *ebiten.Image
 	gopher          *ebiten.Image
@@ -38,6 +41,15 @@ func init() {
 
 	// Audio
 	audioContext, _ = audio.NewContext(44100)
+
+	beat, err := mp3.Decode(audioContext, audio.BytesReadSeekCloser(beat_mp3))
+	if err != nil {
+		log.Fatal(err)
+	}
+	beatLoop = audio.NewInfiniteLoop(audio.ReadSeekCloser(beat), beat.Length()*4*44100)
+	beatPlayer, err = audio.NewPlayer(audioContext, beatLoop)
+	beatPlayer.SetVolume(.5)
+
 	kickD, err := wav.Decode(audioContext, audio.BytesReadSeekCloser(kick_wav))
 	if err != nil {
 		log.Fatal(err)
@@ -46,7 +58,7 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	kickPlayer.SetVolume(.5)
+	kickPlayer.SetVolume(.4)
 
 	// Images
 	img, _, err := image.Decode(bytes.NewReader(gopher_png))
@@ -140,6 +152,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 		if g.y > 600 {
 			g.mode = modeGameOver
+			return nil
 		}
 
 		if g.x > 400 || g.x < 30 {
@@ -252,6 +265,7 @@ func main() {
 	g.mode = modeTitle
 	ebiten.SetWindowSize(500, 600)
 	ebiten.SetWindowTitle("Gopher Juggle")
+	beatPlayer.Play()
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
